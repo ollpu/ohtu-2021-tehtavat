@@ -19,6 +19,7 @@ def main():
             )
 
             players.append(player)
+    players.sort(reverse=True, key=lambda p: p.score)
 
     print(f"Players from {wanted_nationality} {datetime.now()}\n")
 
