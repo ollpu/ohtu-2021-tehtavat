@@ -14,6 +14,7 @@ class App:
                 (username, password) = self._read_credentials()
 
                 try:
+                    print("wat")
                     self.user_sevice.create_user(username, password)
                     self.io.write("New user registered")
                 except Exception as error:

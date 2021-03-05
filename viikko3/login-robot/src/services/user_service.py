@@ -1,11 +1,14 @@
+import re
 from entities.user import User
 
 
 class UserInputError(Exception):
     pass
 
-
 class AuthenticationError(Exception):
+    pass
+
+class RegistrationError(Exception):
     pass
 
 
@@ -36,5 +39,14 @@ class UserService:
     def validate(self, username, password):
         if not username or not password:
             raise UserInputError("Username and password are required")
+        if not re.match("^[a-z]+$", username):
+            raise RegistrationError("Username contains invalid characters")
+        if not re.match(".*[^a-z].*", password):
+            raise RegistrationError("Password should not consist of only lowercase characters")
+        if len(username) < 3:
+            raise RegistrationError("Username is too short")
+        if len(password) < 8:
+            raise RegistrationError("Password is too short")
 
-        # toteuta loput tarkastukset tänne ja nosta virhe virhetilanteissa
+        if self._user_repository.find_by_username(username):
+            raise RegistrationError("Username already in use")
