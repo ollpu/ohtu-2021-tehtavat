@@ -8,10 +8,10 @@ from tuote import Tuote
 class TestKauppa(unittest.TestCase):
     def setUp(self):
         self.pankki_mock = Mock()
-        viitegeneraattori_mock = Mock()
+        self.viitegeneraattori_mock = Mock()
 
         # palautetaan aina arvo 42
-        viitegeneraattori_mock.uusi.return_value = 42
+        self.viitegeneraattori_mock.uusi.return_value = 42
 
         self.varasto_mock = Mock()
 
@@ -38,7 +38,7 @@ class TestKauppa(unittest.TestCase):
         self.varasto_mock.hae_tuote.side_effect = varasto_hae_tuote
 
         # alustetaan kauppa
-        self.kauppa = Kauppa(self.varasto_mock, self.pankki_mock, viitegeneraattori_mock)
+        self.kauppa = Kauppa(self.varasto_mock, self.pankki_mock, self.viitegeneraattori_mock)
 
 
     def test_ostoksen_paaytyttya_pankin_metodia_tilisiirto_kutsutaan(self):
@@ -83,3 +83,33 @@ class TestKauppa(unittest.TestCase):
         self.kauppa.tilimaksu("pertti", "45678")
 
         self.pankki_mock.tilisiirto.assert_called_with("pertti", 42, "45678", ANY, 5)
+
+    def test_aloita_asiointi_tyhjentää_ostoskorin(self):
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(1)
+        self.kauppa.lisaa_koriin(2)
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(2)
+        self.kauppa.tilimaksu("janne", "56789")
+
+        self.pankki_mock.tilisiirto.assert_called_with("janne", 42, "56789", ANY, 9)
+
+    def test_aloita_asiointi_pyytaa_uuden_viitenumeron(self):
+        self.kauppa.aloita_asiointi()
+        self.kauppa.tilimaksu("asd", "asd")
+        self.assertEqual(self.viitegeneraattori_mock.uusi.call_count, 1)
+        self.kauppa.aloita_asiointi()
+        self.kauppa.tilimaksu("asd", "asd")
+        self.assertEqual(self.viitegeneraattori_mock.uusi.call_count, 2)
+        self.kauppa.aloita_asiointi()
+        self.kauppa.tilimaksu("asd", "asd")
+        self.assertEqual(self.viitegeneraattori_mock.uusi.call_count, 3)
+
+    def test_poista_korista(self):
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(1)
+        self.kauppa.lisaa_koriin(2)
+        self.kauppa.poista_korista(1)
+        self.kauppa.tilimaksu("pertti", "67890")
+
+        self.pankki_mock.tilisiirto.assert_called_with("pertti", 42, "67890", ANY, 9)
