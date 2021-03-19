@@ -1,6 +1,7 @@
 class Sovelluslogiikka:
     def __init__(self, tulos=0):
         self.tulos = tulos
+        self.tulospino = []
 
     def miinus(self, arvo):
         self.tulos = self.tulos - arvo
@@ -20,7 +21,9 @@ class LaskinOperaatio:
         self.lue_syote = lue_syote
 
     def suorita(self):
-        return self.suorita_toteutus()
+        entinen_tulos = self.sovelluslogiikka.tulos
+        self.sovelluslogiikka.tulospino.append(entinen_tulos)
+        self.suorita_toteutus()
 
 class Summa(LaskinOperaatio):
     def suorita_toteutus(self):
@@ -35,6 +38,8 @@ class Nollaus(LaskinOperaatio):
         self.sovelluslogiikka.nollaa()
 
 class Kumoa(LaskinOperaatio):
-    def suorita_toteutus(self):
-        pass
+    def suorita(self):
+        if len(self.sovelluslogiikka.tulospino):
+            entinen_arvo = self.sovelluslogiikka.tulospino.pop()
+            self.sovelluslogiikka.aseta_arvo(entinen_arvo)
 
